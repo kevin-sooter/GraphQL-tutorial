@@ -3,11 +3,11 @@ const { prisma } = require('./generated/prisma-client');
 
 async function main() {
   // Create a new link
-  const newLink = await prisma.createLink({
-    url: 'www.prisma.io',
-    description: 'Prisma replaces traditional ORMs',
-  });
-  console.log(`Created new link: ${newLink.url} (ID: ${newLink.id})`);
+  // const newLink = await prisma.createLink({
+  //   url: 'www.prisma.io',
+  //   description: 'Prisma replaces traditional ORMs',
+  // });
+  // console.log(`Created new link: ${newLink.url} (ID: ${newLink.id})`);
 
   // Read all links from the database and print them to the console
   const allLinks = await prisma.links();
@@ -34,6 +34,16 @@ const resolvers = {
       return context.prisma.createLink({
         url: args.url,
         description: args.description,
+      });
+    },
+    deleteLink: async (root, args, context, info) => {
+      await context.prisma.deleteLink({ id: args.id });
+      return `link ${args.id} deleted`;
+    },
+    updateLink: (root, args, context, info) => {
+      return context.prisma.updateLink({
+        where: { id: args.id },
+        data: { url: args.url, description: args.description },
       });
     },
     // deleteLink: (parent, args) => {
