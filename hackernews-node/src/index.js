@@ -1,29 +1,55 @@
 const { GraphQLServer } = require('graphql-yoga');
+const { prisma } = require('./generated/prisma-client');
 
-let links = [
-  {
-    id: 'link-0',
-    url: 'www.howtographql.com',
-    description: 'Fullstack tutorial for GraphQL',
-  },
-];
+async function main() {
+  // Create a new link
+  const newLink = await prisma.createLink({
+    url: 'www.prisma.io',
+    description: 'Prisma replaces traditional ORMs',
+  });
+  console.log(`Created new link: ${newLink.url} (ID: ${newLink.id})`);
 
-let idCount = links.length;
+  // Read all links from the database and print them to the console
+  const allLinks = await prisma.links();
+  console.log(allLinks);
+}
+
+main().catch(e => console.error(e));
+// 1
+
 const resolvers = {
+  // Query: {
+  //   info: () => `This is the API of a Hackernews Clone`,
+  //   feed: () => links,
+  //   link: (parent, args) => links.find(link => link.id === `link-${args.id}`),
+  // },
   Query: {
     info: () => `This is the API of a Hackernews Clone`,
-    feed: () => links,
+    feed: (root, args, context, info) => {
+      return context.prisma.links();
+    },
   },
   Mutation: {
-    post: (parent, args) => {
-      const link = {
-        id: `link-${idCount++}`,
-        description: args.description,
+    post: (root, args, context) => {
+      return context.prisma.createLink({
         url: args.url,
-      };
-      links.push(link);
-      return link;
+        description: args.description,
+      });
     },
+    // deleteLink: (parent, args) => {
+    //   links = links.filter(link => link.id !== `link-${args.id}`);
+    //   return `You deleted link-${args.id}`;
+    // },
+    // updateLink: (parent, args) => {
+    //   const link = links.find(link => link.id === `link-${args.id}`);
+    //   if (args.url) {
+    //     link.url = args.url;
+    //   }
+    //   if (args.description) {
+    //     link.description = args.description;
+    //   }
+    //   return link;
+    // },
   },
 };
 
